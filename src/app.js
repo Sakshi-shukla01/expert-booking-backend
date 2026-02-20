@@ -10,12 +10,11 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 export function createApp(io) {
   const app = express();
 
-  // ✅ allow both React ports + Postman
-   // ✅ allow local + deployed frontend (from .env)
+  // ✅ allow local + deployed frontend (from .env)
   const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:5173",
-    process.env.CLIENT_ORIGIN, // ✅ Vercel URL goes here
+    process.env.CLIENT_ORIGIN, // ✅ Vercel URL
   ].filter(Boolean);
 
   app.use(
@@ -29,12 +28,13 @@ export function createApp(io) {
     })
   );
 
-  // ✅ handle preflight for all routes
-  app.options("*", cors());
+  // ✅ Express 5 safe preflight for all routes
+  app.options(/.*/, cors());
+
   app.use(express.json());
   app.use(morgan("dev"));
 
-  // attach socket io
+  // ✅ attach io BEFORE routes
   app.use((req, res, next) => {
     req.io = io;
     next();
