@@ -11,22 +11,26 @@ export function createApp(io) {
   const app = express();
 
   // ✅ allow both React ports + Postman
+   // ✅ allow local + deployed frontend (from .env)
   const allowedOrigins = [
     "http://localhost:3000",
-    "http://localhost:5173"
-  ];
+    "http://localhost:5173",
+    process.env.CLIENT_ORIGIN, // ✅ Vercel URL goes here
+  ].filter(Boolean);
 
-  app.use(cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // allow Postman
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true
-  }));
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // allow Postman
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error("Not allowed by CORS"));
+      },
+      credentials: true,
+    })
+  );
 
+  // ✅ handle preflight for all routes
+  app.options("*", cors());
   app.use(express.json());
   app.use(morgan("dev"));
 
